@@ -1,5 +1,5 @@
 import { conditionalMapping } from 'src/utils/mapping.utility';
-import { Animal } from '../entity/animal.model';
+import { Animal } from '../entity/animal';
 import { MutateAnimalDto } from '../dto/mutate.animal.dto';
 import { AnimalDto } from '../dto/read.animal.dto';
 

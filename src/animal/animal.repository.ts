@@ -1,6 +1,6 @@
-import { NotFoundException } from 'src/exceptions/not.found.error';
-import { PrismaService } from '../../prisma/prisma.service';
-import { Animal as AnimalModel } from './entity/animal.model';
+import { NotFoundException } from 'src/errors/not.found.error';
+import { PrismaService } from '../prisma/prisma.service';
+import { Animal as AnimalModel } from '../entity/animal';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()

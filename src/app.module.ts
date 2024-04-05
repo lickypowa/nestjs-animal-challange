@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { DomainModule } from './domain/domain.module';
+import { AnimalModule } from 'dist/domain/animal/animal.module';
 
 @Module({
-  imports: [DomainModule],
+  imports: [AnimalModule],
 })
 export class AppModule {}

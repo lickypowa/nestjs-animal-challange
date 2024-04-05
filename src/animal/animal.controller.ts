@@ -12,9 +12,9 @@ import {
 } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger';
 import { AnimalService } from './animal.service';
-import { fromAnimalModelToDto, fromAnimalMutateDtoToModel, fromAnimalsModelToDtos } from './mappers/animal.mapper';
-import { IncreaseAgeDto, IncreaseWeightDto, MutateAnimalDto } from './dto/mutate.animal.dto';
-import { AnimalDto } from './dto/read.animal.dto';
+import { fromAnimalModelToDto, fromAnimalMutateDtoToModel, fromAnimalsModelToDtos } from '../mappers/animal.mapper';
+import { AnimalDto } from 'src/dto/read.animal.dto';
+import { IncreaseAgeDto, IncreaseWeightDto, MutateAnimalDto } from 'src/dto/mutate.animal.dto';
 
 @ApiTags('Animal')
 @Controller('api/v1/animal')
@@ -24,14 +24,14 @@ export class AnimalController {
   @Get()
   @ApiOkResponse({ description: 'Retrieved list of animals successfully.', type: AnimalDto, isArray: true })
   async getAllAnimal(): Promise<AnimalDto[]> {
-    return await this.service.getAllAnimal().then((result) => fromAnimalsModelToDtos(result));
+    return await this.service.getAll().then((result) => fromAnimalsModelToDtos(result));
   }
 
   @Get(':id')
   @ApiParam({ name: 'id', description: 'ID of the animal' })
   @ApiOkResponse({ description: 'Retrieved animal successfully.', type: AnimalDto })
   async getAnimalById(@Param('id') id: number): Promise<AnimalDto> {
-    const value = await this.service.getAnimalById(id);
+    const value = await this.service.get(id);
     return fromAnimalModelToDto(value);
   }
 
@@ -40,9 +40,7 @@ export class AnimalController {
   @ApiBadRequestResponse({ description: 'Invalid data provided.' })
   @UsePipes(ValidationPipe)
   async createAnimal(@Body() data: MutateAnimalDto): Promise<AnimalDto> {
-    return await this.service
-      .createAnimal(fromAnimalMutateDtoToModel(data))
-      .then((value) => fromAnimalModelToDto(value));
+    return await this.service.create(fromAnimalMutateDtoToModel(data)).then((value) => fromAnimalModelToDto(value));
   }
 
   @Put(':id')
@@ -54,16 +52,14 @@ export class AnimalController {
     if (data.id === undefined) {
       throw new UnprocessableEntityException("Animal's id is required");
     }
-    return await this.service
-      .updateAnimal(id, fromAnimalMutateDtoToModel(data))
-      .then((value) => fromAnimalModelToDto(value));
+    return await this.service.update(id, fromAnimalMutateDtoToModel(data)).then((value) => fromAnimalModelToDto(value));
   }
 
   @Delete(':id')
   @ApiParam({ name: 'id', description: 'ID of the animal' })
   @ApiOkResponse({ description: 'Animal deleted successfully.' })
   async deleteAnimal(@Param('id') id: number): Promise<void> {
-    this.service.deleteAnimal(id);
+    this.service.delete(id);
   }
 
   @Put(':id/sleep')

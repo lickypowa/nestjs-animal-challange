@@ -1,38 +1,64 @@
 import { Injectable } from '@nestjs/common';
 import { AnimalRepository } from './animal.repository';
-import { Animal as AnimalModel } from './entity/animal.model';
+import { Animal as AnimalModel } from '../entity/animal';
 import { AnimalInfoService } from './animal.service.info';
-import { NotFoundException } from 'src/exceptions/not.found.error';
+import { NotFoundException } from 'src/errors/not.found.error';
+import { IService } from 'src/shared/interfaces/service.interface';
 
 @Injectable()
-export class AnimalService {
+export class AnimalService implements IService<AnimalModel, AnimalModel> {
   constructor(
     private repository: AnimalRepository,
     private animalServiceInfo: AnimalInfoService,
   ) {}
 
-  async getAllAnimal(): Promise<AnimalModel[]> {
+  /**
+   *
+   * @returns
+   */
+  async getAll(): Promise<AnimalModel[]> {
     return await this.repository.getAllAnimal();
   }
 
-  getAnimalById(id: number): Promise<AnimalModel> {
-    return this.repository.getAnimalById(id);
+  /**
+   *
+   * @param id
+   * @returns
+   */
+  async get(id: number): Promise<AnimalModel> {
+    return await this.repository.getAnimalById(id);
   }
 
-  async createAnimal(data: AnimalModel): Promise<AnimalModel> {
+  /**
+   *
+   * @param data
+   * @returns
+   */
+  async create(data: AnimalModel): Promise<AnimalModel> {
     if (await this.animalServiceInfo.getAnimalInfo(data.type)) {
       return this.repository.createAnimal(data);
     } else throw new NotFoundException('Animal type not exist, please insert a new one');
   }
 
-  async updateAnimal(id: number, entity: AnimalModel): Promise<AnimalModel> {
+  /**
+   *
+   * @param id
+   * @param entity
+   * @returns
+   */
+  async update(id: number, entity: AnimalModel): Promise<AnimalModel> {
     if (await this.animalServiceInfo.getAnimalInfo(entity.type)) {
       return this.repository.updateAnimal(id, entity);
     } else throw new NotFoundException('Animal type not exist, please insert a new one');
   }
 
-  deleteAnimal(id: number) {
-    this.repository.deleteAnimal(id);
+  /**
+   *
+   * @param id
+   * @returns
+   */
+  delete(id: number): Promise<void> {
+    return this.repository.deleteAnimal(id);
   }
 
   /**
