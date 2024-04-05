@@ -13,11 +13,55 @@ export class AnimalService implements IService<AnimalModel, AnimalModel> {
   ) {}
 
   /**
+   * Simulates an animal sleeping by updating its age asynchronously.
+   *
+   * @param id - The identifier of the animal in the repository.
+   * @param additionalAge - The additional age to be added to the current age of the animal.
+   * @returns A Promise that resolves to the updated AnimalModel after the age is updated.
+   */
+  async sleep(id: number, additionalAge: number): Promise<AnimalModel> {
+    return this.repository.get(id).then((result) => {
+      return this.repository.update(id, {
+        ...result,
+        age: result.age + additionalAge,
+      });
+    });
+  }
+
+  /**
+   * Simulates an animal eating by updating its weight asynchronously.
+   *
+   * @param id - The identifier of the animal in the repository.
+   * @param additionalWeight - The additional weight to be added to the current weight of the animal.
+   * @returns A Promise that resolves to the updated AnimalModel after the weight is updated.
+   */
+  async eat(id: number, additionalWeight: number): Promise<AnimalModel> {
+    return this.repository.get(id).then((result) => {
+      return this.repository.update(id, {
+        ...result,
+        weight: result.weight + additionalWeight,
+      });
+    });
+  }
+
+  /**
+   * Retrieves the vocalization of an animal from the repository.
+   *
+   * @param id - The identifier of the animal in the repository.
+   * @returns A Promise that resolves to a string representing the vocalization of the animal.
+   */
+  async speak(id: number): Promise<String> {
+    return this.repository.get(id).then((result) => {
+      return `The ${result.species} goes ${result.verse}`;
+    });
+  }
+
+  /**
    *
    * @returns
    */
   async getAll(): Promise<AnimalModel[]> {
-    return await this.repository.getAllAnimal();
+    return await this.repository.getAll();
   }
 
   /**
@@ -26,7 +70,7 @@ export class AnimalService implements IService<AnimalModel, AnimalModel> {
    * @returns
    */
   async get(id: number): Promise<AnimalModel> {
-    return await this.repository.getAnimalById(id);
+    return await this.repository.get(id);
   }
 
   /**
@@ -36,7 +80,7 @@ export class AnimalService implements IService<AnimalModel, AnimalModel> {
    */
   async create(data: AnimalModel): Promise<AnimalModel> {
     if (await this.animalServiceInfo.getAnimalInfo(data.type)) {
-      return this.repository.createAnimal(data);
+      return this.repository.create(data);
     } else throw new NotFoundException('Animal type not exist, please insert a new one');
   }
 
@@ -48,7 +92,7 @@ export class AnimalService implements IService<AnimalModel, AnimalModel> {
    */
   async update(id: number, entity: AnimalModel): Promise<AnimalModel> {
     if (await this.animalServiceInfo.getAnimalInfo(entity.type)) {
-      return this.repository.updateAnimal(id, entity);
+      return this.repository.update(id, entity);
     } else throw new NotFoundException('Animal type not exist, please insert a new one');
   }
 
@@ -58,47 +102,6 @@ export class AnimalService implements IService<AnimalModel, AnimalModel> {
    * @returns
    */
   delete(id: number): Promise<void> {
-    return this.repository.deleteAnimal(id);
-  }
-
-  /**
-   *
-   * @param id
-   * @param additionalAge
-   * @returns Promise<AnimalModel>
-   */
-  async sleep(id: number, additionalAge: number): Promise<AnimalModel> {
-    return this.repository.getAnimalById(id).then((result) => {
-      return this.repository.updateAnimal(id, {
-        ...result,
-        age: result.age + additionalAge,
-      });
-    });
-  }
-
-  /**
-   *
-   * @param id
-   * @param additionalWeight
-   * @returns
-   */
-  async eat(id: number, additionalWeight: number): Promise<AnimalModel> {
-    return this.repository.getAnimalById(id).then((result) => {
-      return this.repository.updateAnimal(id, {
-        ...result,
-        weight: result.weight + additionalWeight,
-      });
-    });
-  }
-
-  /**
-   *
-   * @param id
-   * @returns
-   */
-  async speak(id: number): Promise<String> {
-    return this.repository.getAnimalById(id).then((result) => {
-      return `The ${result.species} goes ${result.verse}`;
-    });
+    return this.repository.delete(id);
   }
 }

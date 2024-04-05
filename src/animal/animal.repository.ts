@@ -2,28 +2,49 @@ import { NotFoundException } from 'src/errors/not.found.error';
 import { PrismaService } from '../prisma/prisma.service';
 import { Animal as AnimalModel } from '../entity/animal';
 import { Injectable } from '@nestjs/common';
+import { IRepository } from 'src/shared/interfaces/repository.interfaces';
 
 @Injectable()
-export class AnimalRepository {
+export class AnimalRepository implements IRepository<AnimalModel, AnimalModel> {
   constructor(private dao: PrismaService) {}
 
-  async getAllAnimal(): Promise<AnimalModel[]> {
+  /**
+   *
+   * @returns
+   */
+  async getAll(): Promise<AnimalModel[]> {
     return await this.dao.animal.findMany();
   }
 
-  async getAnimalById(id: number): Promise<AnimalModel> {
+  /**
+   *
+   * @param id
+   * @returns
+   */
+  async get(id: number): Promise<AnimalModel> {
     return await this.dao.animal.findUniqueOrThrow({ where: { id: Number(id) } }).catch(() => {
       throw new NotFoundException('Animal not found');
     });
   }
 
-  async createAnimal(data: AnimalModel) {
+  /**
+   *
+   * @param data
+   * @returns
+   */
+  async create(data: AnimalModel) {
     return await this.dao.animal.create({
       data,
     });
   }
 
-  async updateAnimal(id: number, data: AnimalModel): Promise<AnimalModel> {
+  /**
+   *
+   * @param id
+   * @param data
+   * @returns
+   */
+  async update(id: number, data: AnimalModel): Promise<AnimalModel> {
     return await this.dao.animal
       .update({
         where: { id: Number(id) },
@@ -37,7 +58,11 @@ export class AnimalRepository {
       });
   }
 
-  async deleteAnimal(id: number) {
+  /**
+   *
+   * @param id
+   */
+  async delete(id: number) {
     await this.dao.animal.delete({ where: { id: Number(id) } });
   }
 }
