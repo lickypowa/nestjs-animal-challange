@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Inject,
   Param,
   Post,
   Put,
@@ -21,20 +22,26 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AnimalService } from './animal.service';
-import { fromAnimalModelToDto, fromAnimalMutateDtoToModel, fromAnimalsModelToDtos } from '../mappers/animal.mapper';
 import { ANIMALS_API, APPLICATION_JSON_MEDIA_TYPE } from 'src/shared/constants';
-import { IncreaseAgeDto, IncreaseWeightDto } from 'dist/dto/mutate.animal.dto';
-import { AnimalDto } from 'dist/dto/read.animal.dto';
+import {
+  fromAnimalsModelToDtos,
+  fromAnimalModelToDto,
+  fromAnimalMutateDtoToModel,
+} from 'src/shared/mapper/animal.mapper';
+import { AnimalDto, IncreaseAgeDto, IncreaseWeightDto } from 'src/shared/dto/animal/animal.dto';
+import { AnimalCreateDto } from 'src/shared/dto/animal/create-animal-dto';
+import { IAnimalService } from './interface/animal.service.inteface';
+import { ANIMAL_SERVICE_KEY } from './animal.providers';
 
 @ApiBearerAuth()
 @ApiTags(ANIMALS_API)
 @Controller(ANIMALS_API)
 export class AnimalController {
-  constructor(private service: AnimalService) {}
+  constructor(@Inject(ANIMAL_SERVICE_KEY) private service: IAnimalService) {}
 
   @Get()
   @ApiResponse({ description: 'Retrieved list of animals successfully.', type: AnimalDto, isArray: true })
+  @ApiProduces(APPLICATION_JSON_MEDIA_TYPE)
   async getAllAnimal(): Promise<AnimalDto[]> {
     return await this.service.getAll().then((result) => fromAnimalsModelToDtos(result));
   }
@@ -42,6 +49,7 @@ export class AnimalController {
   @Get(':id')
   @ApiParam({ name: 'id', description: 'ID of the animal' })
   @ApiResponse({ description: 'Retrieved animal successfully.', type: AnimalDto })
+  @ApiProduces(APPLICATION_JSON_MEDIA_TYPE)
   @ApiBadRequestResponse({
     status: 404,
     description: 'Animal not found',
@@ -61,7 +69,7 @@ export class AnimalController {
   })
   @Post()
   @UsePipes(ValidationPipe)
-  async createAnimal(@Body() data: AnimalDto): Promise<AnimalDto> {
+  async createAnimal(@Body() data: AnimalCreateDto): Promise<AnimalDto> {
     return await this.service.create(fromAnimalMutateDtoToModel(data)).then((value) => fromAnimalModelToDto(value));
   }
 
@@ -93,6 +101,7 @@ export class AnimalController {
   @Put(':id/sleep')
   @ApiParam({ name: 'id', description: 'ID of the animal' })
   @ApiResponse({ status: 200, description: 'Animal slept successfully.', type: AnimalDto })
+  @ApiProduces(APPLICATION_JSON_MEDIA_TYPE)
   @ApiBadRequestResponse({
     status: 404,
     description: 'Animal not found',
@@ -104,6 +113,7 @@ export class AnimalController {
   @Put(':id/eat')
   @ApiParam({ name: 'id', description: 'ID of the animal' })
   @ApiResponse({ description: 'Animal ate successfully.', type: AnimalDto })
+  @ApiProduces(APPLICATION_JSON_MEDIA_TYPE)
   @ApiBadRequestResponse({
     status: 404,
     description: 'Animal not found',

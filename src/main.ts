@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import { DocumentBuilder, SwaggerDocumentOptions, SwaggerModule } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap(): Promise<void> {
   dotenv.config();
@@ -21,6 +21,10 @@ async function bootstrap(): Promise<void> {
       transform: true,
     }),
   );
-  await app.listen(process.env.PORT || 3000, () => {});
+  const port = process.env.PORT || 3000;
+  await app.listen(port, () => {});
+
+  const logger = new Logger('NestApplication');
+  logger.log(`Nest application successfully started on port: ${port}`);
 }
 bootstrap();

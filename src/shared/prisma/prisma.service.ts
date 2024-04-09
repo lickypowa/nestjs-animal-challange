@@ -3,9 +3,10 @@ import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
+  [x: string]: any;
   async onModuleInit() {
     await this.$connect()
-      .then(() => console.log('Successfully connected to database'))
+      .then()
       .catch((err) => {
         console.log(err);
       });
