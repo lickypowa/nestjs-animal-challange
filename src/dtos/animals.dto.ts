@@ -1,12 +1,8 @@
 import { ApiProperty, PickType } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { BaseDto } from './base.mutate.dto';
 
-export class MutateAnimalDto {
-  @ApiProperty({ required: false, description: 'ID of the animal' })
-  @IsNumber()
-  @IsOptional()
-  id?: number;
-
+export class MutateAnimalDto extends BaseDto {
   @ApiProperty({ description: 'Name of the animal' })
   @IsString()
   @IsNotEmpty()

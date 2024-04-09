@@ -1,16 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { AnimalRepository } from './animal.repository';
-import { Animal as AnimalModel } from '../entity/animal';
-import { AnimalInfoService } from './animal.service.info';
+import { Animal as AnimalModel } from '../entities/animal';
 import { NotFoundException } from 'src/errors/not.found.error';
 import { IService } from 'src/shared/interfaces/service.interface';
+import axios from 'axios';
 
 @Injectable()
 export class AnimalService implements IService<AnimalModel, AnimalModel> {
-  constructor(
-    private repository: AnimalRepository,
-    private animalServiceInfo: AnimalInfoService,
-  ) {}
+  constructor(private repository: AnimalRepository) {}
 
   /**
    * Simulates an animal sleeping by updating its age asynchronously.
@@ -79,7 +76,7 @@ export class AnimalService implements IService<AnimalModel, AnimalModel> {
    * @returns
    */
   async create(data: AnimalModel): Promise<AnimalModel> {
-    if (await this.animalServiceInfo.getAnimalInfo(data.type)) {
+    if (await this.getAnimalInfo(data.type)) {
       return this.repository.create(data);
     } else throw new NotFoundException('Animal type not exist, please insert a new one');
   }
@@ -91,7 +88,7 @@ export class AnimalService implements IService<AnimalModel, AnimalModel> {
    * @returns
    */
   async update(id: number, entity: AnimalModel): Promise<AnimalModel> {
-    if (await this.animalServiceInfo.getAnimalInfo(entity.type)) {
+    if (await this.getAnimalInfo(entity.type)) {
       return this.repository.update(id, entity);
     } else throw new NotFoundException('Animal type not exist, please insert a new one');
   }
@@ -103,5 +100,21 @@ export class AnimalService implements IService<AnimalModel, AnimalModel> {
    */
   delete(id: number): Promise<void> {
     return this.repository.delete(id);
+  }
+
+  /**
+   * Retrieves information about an animal from Wikipedia in English and Italian languages.
+   *
+   * @param name - The name of the animal to fetch information about.
+   * @returns A Promise that resolves to a boolean indicating whether information is found for the specified animal.
+   */
+  async getAnimalInfo(name: string): Promise<boolean> {
+    try {
+      const response = await axios.get(`https://en.wikipedia.org/api/rest_v1/page/summary/${name}`);
+      const italianResponse = await axios.get(`https://it.wikipedia.org/api/rest_v1/page/summary/${name}`);
+      return !!response.data || !!italianResponse.data;
+    } catch (error) {
+      return false;
+    }
   }
 }

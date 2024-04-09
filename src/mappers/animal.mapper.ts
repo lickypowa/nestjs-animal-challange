@@ -1,7 +1,7 @@
 import { conditionalMapping } from 'src/utils/mapping.utility';
-import { Animal } from '../entity/animal';
-import { MutateAnimalDto } from '../dto/mutate.animal.dto';
-import { AnimalDto } from '../dto/read.animal.dto';
+import { Animal } from '../entities/animal';
+import { MutateAnimalDto } from '../dtos/animals.dto';
+import { AnimalDto } from '../dtos/read.animal.dto';
 
 export const fromAnimalMutateDtoToModel = (arg: MutateAnimalDto): Animal => ({
   id: arg.id,

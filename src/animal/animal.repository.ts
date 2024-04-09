@@ -1,8 +1,8 @@
 import { NotFoundException } from 'src/errors/not.found.error';
 import { PrismaService } from '../prisma/prisma.service';
-import { Animal as AnimalModel } from '../entity/animal';
+import { Animal as AnimalModel } from '../entities/animal';
 import { Injectable } from '@nestjs/common';
-import { IRepository } from 'src/shared/interfaces/repository.interfaces';
+import { IRepository } from 'src/shared/interfaces/repository.interface';
 
 @Injectable()
 export class AnimalRepository implements IRepository<AnimalModel, AnimalModel> {

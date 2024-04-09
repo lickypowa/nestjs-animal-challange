@@ -23,9 +23,9 @@ import {
 } from '@nestjs/swagger';
 import { AnimalService } from './animal.service';
 import { fromAnimalModelToDto, fromAnimalMutateDtoToModel, fromAnimalsModelToDtos } from '../mappers/animal.mapper';
-import { AnimalDto } from 'src/dto/read.animal.dto';
-import { IncreaseAgeDto, IncreaseWeightDto, MutateAnimalDto } from 'src/dto/mutate.animal.dto';
-import { ANIMALS_API, APPLICATION_JSON_MEDIA_TYPE } from 'src/utils/constants';
+import { ANIMALS_API, APPLICATION_JSON_MEDIA_TYPE } from 'src/shared/constants';
+import { IncreaseAgeDto, IncreaseWeightDto } from 'dist/dto/mutate.animal.dto';
+import { AnimalDto } from 'dist/dto/read.animal.dto';
 
 @ApiBearerAuth()
 @ApiTags(ANIMALS_API)
@@ -42,6 +42,10 @@ export class AnimalController {
   @Get(':id')
   @ApiParam({ name: 'id', description: 'ID of the animal' })
   @ApiResponse({ description: 'Retrieved animal successfully.', type: AnimalDto })
+  @ApiBadRequestResponse({
+    status: 404,
+    description: 'Animal not found',
+  })
   async getAnimalById(@Param('id') id: number): Promise<AnimalDto> {
     const value = await this.service.get(id);
     return fromAnimalModelToDto(value);
@@ -57,16 +61,18 @@ export class AnimalController {
   })
   @Post()
   @UsePipes(ValidationPipe)
-  async createAnimal(@Body() data: MutateAnimalDto): Promise<AnimalDto> {
+  async createAnimal(@Body() data: AnimalDto): Promise<AnimalDto> {
     return await this.service.create(fromAnimalMutateDtoToModel(data)).then((value) => fromAnimalModelToDto(value));
   }
 
   @Put(':id')
   @ApiParam({ name: 'id', description: 'ID of the animal' })
+  @ApiConsumes(APPLICATION_JSON_MEDIA_TYPE)
+  @ApiProduces(APPLICATION_JSON_MEDIA_TYPE)
   @ApiResponse({ description: 'Animal updated successfully.', type: AnimalDto })
   @ApiBadRequestResponse({ description: 'Invalid data provided.' })
   @UsePipes(ValidationPipe)
-  async updateAnimal(@Param('id') id: number, @Body() data: MutateAnimalDto): Promise<AnimalDto> {
+  async updateAnimal(@Param('id') id: number, @Body() data: AnimalDto): Promise<AnimalDto> {
     if (data.id === undefined) {
       throw new UnprocessableEntityException("Animal's id is required");
     }
@@ -76,6 +82,10 @@ export class AnimalController {
   @Delete(':id')
   @ApiParam({ name: 'id', description: 'ID of the animal' })
   @ApiResponse({ status: 204, description: 'Animal deleted successfully.' })
+  @ApiBadRequestResponse({
+    status: 404,
+    description: 'Animal not found',
+  })
   async deleteAnimal(@Param('id') id: number): Promise<void> {
     this.service.delete(id);
   }
@@ -83,6 +93,10 @@ export class AnimalController {
   @Put(':id/sleep')
   @ApiParam({ name: 'id', description: 'ID of the animal' })
   @ApiResponse({ status: 200, description: 'Animal slept successfully.', type: AnimalDto })
+  @ApiBadRequestResponse({
+    status: 404,
+    description: 'Animal not found',
+  })
   async sleep(@Param('id') id: number, @Body() data: IncreaseAgeDto): Promise<AnimalDto> {
     return await this.service.sleep(id, data.age).then((value) => fromAnimalModelToDto(value));
   }
@@ -90,6 +104,10 @@ export class AnimalController {
   @Put(':id/eat')
   @ApiParam({ name: 'id', description: 'ID of the animal' })
   @ApiResponse({ description: 'Animal ate successfully.', type: AnimalDto })
+  @ApiBadRequestResponse({
+    status: 404,
+    description: 'Animal not found',
+  })
   async eat(@Param('id') id: number, @Body() data: IncreaseWeightDto): Promise<AnimalDto> {
     return await this.service.eat(id, data.weight).then((value) => fromAnimalModelToDto(value));
   }
@@ -97,6 +115,10 @@ export class AnimalController {
   @Get(':id/speak')
   @ApiParam({ name: 'id', description: 'ID of the animal' })
   @ApiResponse({ description: 'Animal spoke successfully.', type: String })
+  @ApiBadRequestResponse({
+    status: 404,
+    description: 'Animal not found',
+  })
   async speak(@Param('id') id: number): Promise<String> {
     return await this.service.speak(id);
   }
