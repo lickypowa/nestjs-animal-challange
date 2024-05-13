@@ -1,30 +1,28 @@
-import { Injectable } from '@nestjs/common';
-import { AnimalRepository } from './animal.repository';
-import { Animal as AnimalModel } from '../entity/animal';
-import { AnimalInfoService } from './animal.service.info';
-import { NotFoundException } from 'src/errors/not.found.error';
-import { IService } from 'src/shared/interfaces/service.interface';
-
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Animal } from '../shared/domain/animal';
+import axios from 'axios';
+import { IAnimalService } from './interface/animal.service.inteface';
+import { IAnimalRepository } from 'src/database/animal/interface/animal.repository.interface';
+import { ANIMAL_REPOSITORY_KEY } from './animal-providers/animal-repository-provider';
+import { AnimalTypeNotFoundException } from 'src/shared/errors/animal-type-not-found-error';
 @Injectable()
-export class AnimalService implements IService<AnimalModel, AnimalModel> {
-  constructor(
-    private repository: AnimalRepository,
-    private animalServiceInfo: AnimalInfoService,
-  ) {}
+export class AnimalService implements IAnimalService {
+  logger = new Logger('NestApplication');
+  constructor(@Inject(ANIMAL_REPOSITORY_KEY) private repository: IAnimalRepository) {}
 
   /**
    * Simulates an animal sleeping by updating its age asynchronously.
    *
    * @param id - The identifier of the animal in the repository.
    * @param additionalAge - The additional age to be added to the current age of the animal.
-   * @returns A Promise that resolves to the updated AnimalModel after the age is updated.
+   * @returns A Promise that resolves to the updated Animal after the age is updated.
    */
-  async sleep(id: number, additionalAge: number): Promise<AnimalModel> {
-    return this.repository.get(id).then((result) => {
-      return this.repository.update(id, {
-        ...result,
-        age: result.age + additionalAge,
-      });
+  async sleep(id: number, additionalAge: number): Promise<Animal> {
+    const foundAnimal = await this.repository.get(id);
+
+    return this.repository.update(id, {
+      ...foundAnimal,
+      age: foundAnimal.age + additionalAge,
     });
   }
 
@@ -33,14 +31,14 @@ export class AnimalService implements IService<AnimalModel, AnimalModel> {
    *
    * @param id - The identifier of the animal in the repository.
    * @param additionalWeight - The additional weight to be added to the current weight of the animal.
-   * @returns A Promise that resolves to the updated AnimalModel after the weight is updated.
+   * @returns A Promise that resolves to the updated Animal after the weight is updated.
    */
-  async eat(id: number, additionalWeight: number): Promise<AnimalModel> {
-    return this.repository.get(id).then((result) => {
-      return this.repository.update(id, {
-        ...result,
-        weight: result.weight + additionalWeight,
-      });
+  async eat(id: number, additionalWeight: number): Promise<Animal> {
+    const foundAnimal = await this.repository.get(id);
+
+    return this.repository.update(id, {
+      ...foundAnimal,
+      weight: foundAnimal.weight + additionalWeight,
     });
   }
 
@@ -50,17 +48,16 @@ export class AnimalService implements IService<AnimalModel, AnimalModel> {
    * @param id - The identifier of the animal in the repository.
    * @returns A Promise that resolves to a string representing the vocalization of the animal.
    */
-  async speak(id: number): Promise<String> {
-    return this.repository.get(id).then((result) => {
-      return `The ${result.species} goes ${result.verse}`;
-    });
+  async speak(id: number): Promise<string> {
+    const foundAnimal = await this.repository.get(id);
+    return `The ${foundAnimal.species} goes ${foundAnimal.verse}`;
   }
 
   /**
    *
    * @returns
    */
-  async getAll(): Promise<AnimalModel[]> {
+  async getAll(): Promise<Animal[]> {
     return await this.repository.getAll();
   }
 
@@ -69,7 +66,7 @@ export class AnimalService implements IService<AnimalModel, AnimalModel> {
    * @param id
    * @returns
    */
-  async get(id: number): Promise<AnimalModel> {
+  async get(id: number): Promise<Animal> {
     return await this.repository.get(id);
   }
 
@@ -78,10 +75,14 @@ export class AnimalService implements IService<AnimalModel, AnimalModel> {
    * @param data
    * @returns
    */
-  async create(data: AnimalModel): Promise<AnimalModel> {
-    if (await this.animalServiceInfo.getAnimalInfo(data.type)) {
+  async create(data: Animal): Promise<Animal> {
+    const existByName = await this.isAnimalExistsByType(data.type);
+    if (existByName) {
       return this.repository.create(data);
-    } else throw new NotFoundException('Animal type not exist, please insert a new one');
+    } else {
+      this.logger.error("Cannot create or update the animal inserted 'cause it doesn't exist");
+      throw new AnimalTypeNotFoundException();
+    }
   }
 
   /**
@@ -90,10 +91,11 @@ export class AnimalService implements IService<AnimalModel, AnimalModel> {
    * @param entity
    * @returns
    */
-  async update(id: number, entity: AnimalModel): Promise<AnimalModel> {
-    if (await this.animalServiceInfo.getAnimalInfo(entity.type)) {
+  async update(id: number, entity: Animal): Promise<Animal> {
+    const existByName = await this.isAnimalExistsByType(entity.type);
+    if (existByName) {
       return this.repository.update(id, entity);
-    } else throw new NotFoundException('Animal type not exist, please insert a new one');
+    } else throw new AnimalTypeNotFoundException();
   }
 
   /**
@@ -103,5 +105,21 @@ export class AnimalService implements IService<AnimalModel, AnimalModel> {
    */
   delete(id: number): Promise<void> {
     return this.repository.delete(id);
+  }
+
+  /**
+   * Retrieves information about an animal from Wikipedia in English and Italian languages.
+   *
+   * @param type - The name of the animal to fetch information about.
+   * @returns A Promise that resolves to a boolean indicating whether information is found for the specified animal.
+   */
+  async isAnimalExistsByType(type: string): Promise<boolean> {
+    try {
+      const response = await axios.get(`https://en.wikipedia.org/api/rest_v1/page/summary/${type}`);
+      const italianResponse = await axios.get(`https://it.wikipedia.org/api/rest_v1/page/summary/${type}`);
+      return !!response.data || !!italianResponse.data;
+    } catch (error) {
+      return false;
+    }
   }
 }
