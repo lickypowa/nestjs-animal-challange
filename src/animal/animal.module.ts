@@ -4,8 +4,9 @@ import { AnimalService } from './animal.service';
 import { DatabaseModule } from 'src/database/database.module';
 import { AnimalRepository } from 'src/database/animal/animal.repository';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
-import { ANIMAL_REPOSITORY_KEY, ANIMAL_SERVICE_KEY } from './animal.providers';
 import { PRISMA_SERVICE_KEY } from 'src/shared/prisma/prisma.providers';
+import { ANIMAL_SERVICE_KEY } from './animal-providers/animal-service.provider';
+import { ANIMAL_REPOSITORY_KEY } from './animal-providers/animal-repository-provider';
 
 @Module({
   controllers: [AnimalController],

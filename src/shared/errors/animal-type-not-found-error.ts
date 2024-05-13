@@ -1,5 +1,5 @@
-export class UnprocessableEntity extends Error {
-  statusCode = 402;
+export class AnimalTypeNotFoundException extends Error {
+  statusCode = 404;
   constructor(error: string = "Cannot create or update the animal inserted 'cause it doesn't exist") {
     super(error);
   }

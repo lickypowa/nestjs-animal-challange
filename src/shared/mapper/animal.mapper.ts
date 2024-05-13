@@ -1,7 +1,7 @@
-import { AnimalDto } from 'dist/dto/read.animal.dto';
 import { Animal } from '../domain/animal';
+import { AnimalDto } from '../dto/animal/animal.dto';
 
-export const fromAnimalMutateDtoToModel = (arg: AnimalDto): Animal => ({
+export const fromAnimalRestToModel = (arg: AnimalDto): Animal => ({
   id: arg.id,
   name: arg.name,
   type: arg.type,

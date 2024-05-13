@@ -1,11 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Animal } from '../shared/domain/animal';
 import axios from 'axios';
-import { UnprocessableEntity } from 'src/shared/errors/unprocessable-entity.error';
 import { IAnimalService } from './interface/animal.service.inteface';
 import { IAnimalRepository } from 'src/database/animal/interface/animal.repository.interface';
-import { ANIMAL_REPOSITORY_KEY } from './animal.providers';
-
+import { ANIMAL_REPOSITORY_KEY } from './animal-providers/animal-repository-provider';
+import { AnimalTypeNotFoundException } from 'src/shared/errors/animal-type-not-found-error';
 @Injectable()
 export class AnimalService implements IAnimalService {
   logger = new Logger('NestApplication');
@@ -49,7 +48,7 @@ export class AnimalService implements IAnimalService {
    * @param id - The identifier of the animal in the repository.
    * @returns A Promise that resolves to a string representing the vocalization of the animal.
    */
-  async speak(id: number): Promise<String> {
+  async speak(id: number): Promise<string> {
     const foundAnimal = await this.repository.get(id);
     return `The ${foundAnimal.species} goes ${foundAnimal.verse}`;
   }
@@ -77,12 +76,12 @@ export class AnimalService implements IAnimalService {
    * @returns
    */
   async create(data: Animal): Promise<Animal> {
-    const existByName = await this.getAnimalInfo(data.type);
+    const existByName = await this.isAnimalExistsByType(data.type);
     if (existByName) {
       return this.repository.create(data);
     } else {
       this.logger.error("Cannot create or update the animal inserted 'cause it doesn't exist");
-      throw new UnprocessableEntity();
+      throw new AnimalTypeNotFoundException();
     }
   }
 
@@ -93,10 +92,10 @@ export class AnimalService implements IAnimalService {
    * @returns
    */
   async update(id: number, entity: Animal): Promise<Animal> {
-    const existByName = await this.getAnimalInfo(entity.type);
+    const existByName = await this.isAnimalExistsByType(entity.type);
     if (existByName) {
       return this.repository.update(id, entity);
-    } else throw new UnprocessableEntity();
+    } else throw new AnimalTypeNotFoundException();
   }
 
   /**
@@ -111,13 +110,13 @@ export class AnimalService implements IAnimalService {
   /**
    * Retrieves information about an animal from Wikipedia in English and Italian languages.
    *
-   * @param name - The name of the animal to fetch information about.
+   * @param type - The name of the animal to fetch information about.
    * @returns A Promise that resolves to a boolean indicating whether information is found for the specified animal.
    */
-  async getAnimalInfo(name: string): Promise<boolean> {
+  async isAnimalExistsByType(type: string): Promise<boolean> {
     try {
-      const response = await axios.get(`https://en.wikipedia.org/api/rest_v1/page/summary/${name}`);
-      const italianResponse = await axios.get(`https://it.wikipedia.org/api/rest_v1/page/summary/${name}`);
+      const response = await axios.get(`https://en.wikipedia.org/api/rest_v1/page/summary/${type}`);
+      const italianResponse = await axios.get(`https://it.wikipedia.org/api/rest_v1/page/summary/${type}`);
       return !!response.data || !!italianResponse.data;
     } catch (error) {
       return false;

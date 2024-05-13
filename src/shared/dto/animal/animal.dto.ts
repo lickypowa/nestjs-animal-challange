@@ -1,5 +1,5 @@
-import { ApiProperty, PickType } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { BaseDto } from '../base.mutate.dto';
 
 export class AnimalDto extends BaseDto {
@@ -38,9 +38,3 @@ export class AnimalDto extends BaseDto {
   @IsString()
   verse!: string;
 }
-
-export class IncreaseWeightDto extends PickType(AnimalDto, ['weight'] as const) {}
-
-export class IncreaseAgeDto extends PickType(AnimalDto, ['age'] as const) {}
-
-export class AnimalVerseDto extends PickType(AnimalDto, ['verse'] as const) {}
